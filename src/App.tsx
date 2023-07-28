@@ -1,6 +1,5 @@
 //imports
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import Button from "react-bootstrap/Button";
 import CrearTodo from "../components/CrearTodo";
 import { Collapse } from "react-bootstrap";
@@ -18,6 +17,12 @@ interface todo {
 interface input {
   title: string;
   completed: boolean;
+}
+
+interface editInput {
+  title: string;
+  completed: boolean;
+  idTarea : number;
 }
 
 interface Errors {
@@ -46,6 +51,14 @@ function App() {
     duplicate : false,
     delete : true
   })
+  const [editar, setEditar] = useState(false)
+  const [editInput, setEditInput] = useState<editInput>({
+    title: "",
+    completed: false,
+    idTarea : 0
+  });
+
+  console.log(editInput)
 
 
 
@@ -62,6 +75,19 @@ function App() {
       })
     }
   }, [input]);
+
+  useEffect(() => {
+    if(editInput.title.match(/\d+/g)){
+      setErrors({
+        ...errors,
+        numberError : true
+      })}else{
+      setErrors({
+        ...errors,
+        numberError : false
+      })
+    }
+  }, [editInput]);
   
   //useEffect, Uso de funcion que trae las tareas de la API
   useEffect(() => {
@@ -84,13 +110,11 @@ function App() {
       ]
       )
     }
-    console.log(todo)
   };
 
   // Funcion que elimina la tarea
 
-  const deleteTodo = (e) => {
-    e.preventDefault()
+  const deleteTodo = () => {
     const todo = todos.find((todo) => todo.id === deleteInput);
     if (todo) {
       setTodos([
@@ -99,9 +123,6 @@ function App() {
       )
     }
   };
-
-
-
 
 // funcion que en un principio verifica que el input no contenga un string vacio, luego verifica 
   const createTodo = () =>{
@@ -174,6 +195,55 @@ function App() {
     }
     )
   }
+
+ // edit Todo
+  const editTodo = () =>{
+    if(editInput.title === ""){
+      setErrors({
+        ...errors,
+        stringError : true
+      })
+      setTimeout(() => {
+        setErrors({
+          ...errors,
+          stringError : false
+        })
+      }, 3000);
+      console.log(errors)
+      return
+      //verifica si el titulo es el mismo de una tarea ya creada
+    }if(todos.find((todo) => todo.title === editInput.title)){
+      setErrors({
+        ...errors,
+        duplicate : true
+      })
+      setTimeout(() => {
+        setErrors({
+          ...errors,
+          duplicate : false
+        })
+      }, 3000);
+      console.log(errors)
+      return
+    }
+  
+    // busca el todo que se quiere editar por el id y lo modifica 
+    const todo = todos.find((todo) => todo.id === editInput.idTarea);
+    if (todo) {
+      setTodos([
+        ...todos.filter((todo) => todo.id !== editInput.idTarea),
+        {
+          ...todo,
+          title : editInput.title,
+          completed: editInput.completed,
+        },
+      ]
+      )
+    }
+  }
+
+  
+
  // funcion que muestra las tareas
   const showTodo = () => {
     const todosSortByNumber = todos.sort((a, b) => a.id - b.id);
@@ -191,7 +261,7 @@ function App() {
           <p>{todo.completed}</p>
           <p>Numero de tarea : {todo.id}</p>
         </div>
-        <div className="d-flex flex-nowrap">
+        <div className="d-flex flex-column">
           {
             todo.completed?
              <></> :
@@ -199,6 +269,9 @@ function App() {
             modifyTodo(todo.id)
           }} className="bg-primary m-1">Terminar</Button>
           }
+          <Button onClick={()=>{
+            setEditar(!editar)
+          }} className="bg-primary m-1">Editar</Button>
           <Button onClick={()=>{
             setErrors({
               ...errors,
@@ -214,7 +287,6 @@ function App() {
 
   return (
     <>
-      <Navbar />
       <div className="container">
         <h2 className="text-center">Tareas por terminar</h2>
         <div className="w-75 d-flex-inline m-auto shadow-sm border rounded-3">
@@ -240,22 +312,22 @@ function App() {
         </div>
         <div>
           <Fade in={errors.stringError}>
-            <div className="alert alert-danger   position-fixed top-0 w-75 text-center" role="alert">
+            <div className="alert alert-danger zindex-tooltip  position-fixed top-0 w-75 text-center" role="alert">
               Debes ingresar un titulo
           </div>
           </Fade>
           <Fade in={errors.success}>
-            <div className="alert alert-success   position-fixed top-0 w-75 text-center" role="alert">
+            <div className="alert alert-success  zindex-tooltip position-fixed top-0 w-75 text-center" role="alert">
               Tarea creada con exito
               </div>
           </Fade>
           <Fade in={errors.numberError}>
-              <div className="alert alert-warning   position-fixed top-0 w-75 text-center" role="alert">
+              <div className="alert alert-warning  zindex-tooltip position-fixed top-0 w-75 text-center" role="alert">
               El titulo no puede contener numeros
               </div>
           </Fade>
           <Fade in={errors.duplicate}>
-              <div className="alert alert-warning  position-fixed top-0 w-75 text-center" role="alert">
+              <div className="alert alert-warning zindex-tooltip position-fixed top-0 w-75 text-center" role="alert">
               El titulo no puede ser igual a una tarea ya creada
               </div>
           </Fade>
@@ -263,14 +335,15 @@ function App() {
       </div>
           { errors.delete ? <></> :
         <Fade in={errors.delete}>
-              <div className="alert alert-danger  position-fixed opacity-100 top-0 w-100  text-center" role="alert">
+              <div className="alert alert-danger zindex-tooltip position-fixed opacity-100 top-0 w-100  text-center" role="alert">
               <p>Confirma el numero de tarea que quieres eliminar</p>
               <input type="text" onChange={(e)=>{
                 setDeleteInput(Number(e.target.value))
               }}  />
               <br />
               <button type="submit" className="btn  btn-danger m-1" onClick={(e)=>{
-                deleteTodo(e)
+                e.preventDefault()
+                deleteTodo()
                 setErrors({
                   ...errors,
                   delete : !errors.delete
@@ -284,6 +357,52 @@ function App() {
               }}>Cancelar</button>
               </div>
           </Fade>}
+          { editar ? 
+        <Fade in={editar}>
+              <div className="alert alert-danger  position-fixed opacity-100 top-0 w-100  text-center" role="alert">
+              <p>Inserta los Datos de la tarea que quieres modificar</p>
+              <p>Titulo de la tarea</p>
+              <input type="text" onChange={(e)=>{
+                setEditInput({
+                  ...editInput,
+                  title: e.target.value
+                })
+              }}  />
+              <br />
+              <p>Estado de la tarea</p>
+              <select onChange={(e)=>{
+                setEditInput({
+                  ...editInput,
+                  completed: e.target.value === '1' ? true : false
+                })
+              }
+              } name="estado" id="estadoTarea">
+                  <option value="2">No terminada</option>
+                  <option value="1">Terminada</option>
+              </select>
+              <br />
+              <p>Confirma el numero de Tarea que quieres editar</p>
+              <input type="text" onChange={(e)=>{
+                setEditInput({
+                  ...editInput,
+                  idTarea: Number(e.target.value)
+                })
+              }
+              }  />
+              <br />
+              <button type="submit" className="btn  btn-danger m-1" onClick={(e)=>{
+                e.preventDefault()
+                editTodo()
+                setEditar(!editar)
+              }}>Editar</button>
+              <button onClick={()=>{
+                setEditar(!editar)
+              }} className="btn btn-primary m-1 " >Cancelar</button>
+
+              </div>
+          </Fade> :
+              <></> 
+            }
     </>
   );
 }
