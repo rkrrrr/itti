@@ -261,7 +261,7 @@ function App() {
  // funcion que muestra las tareas
   const showTodo = () => {
     const todos = filterTodo()
-    const todosSortByNumber = todos.sort((a, b) => a.id - b.id);
+    const todosSortByNumber = todos!.sort((a, b) => a.id - b.id);
     
 
     return todosSortByNumber.map((todo) => (
