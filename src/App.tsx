@@ -57,6 +57,7 @@ function App() {
     completed: false,
     idTarea : 0
   });
+  const [filtro, setFiltro] = useState<string>('0')
 
   console.log(editInput)
 
@@ -242,11 +243,26 @@ function App() {
     }
   }
 
+  // funcion que filtra las tareas
+  const filterTodo = () => {
+    console.log(filtro)
+    if(filtro === '0'){
+      return todos
+    }else if(filtro === '1'){
+      return todos.filter((todo) => todo.completed === true)
+    }else if(filtro === '2'){
+      return todos.filter((todo) => todo.completed === false)
+    }
+  }
+
+
   
 
  // funcion que muestra las tareas
   const showTodo = () => {
+    const todos = filterTodo()
     const todosSortByNumber = todos.sort((a, b) => a.id - b.id);
+    
 
     return todosSortByNumber.map((todo) => (
       <div
@@ -307,32 +323,40 @@ function App() {
           </Collapse>
           
         </div>
+        <h2 >Filtrar</h2>
+        <select name="filtrar" id="filtrar" onChange={(e)=>{
+          setFiltro(e.target.value)
+        }}>
+          <option value="0">Todas las tareas</option>
+          <option value="1">Tareas terminadas</option>
+          <option value="2">Tareas no terminadas</option>
+        </select>
         <div className="d-flex gap-2 mt-2 flex-column-reverse">
           {showTodo()}
         </div>
         <div>
+        </div>
+      </div>
           <Fade in={errors.stringError}>
-            <div className="alert alert-danger zindex-tooltip  position-fixed top-0 w-75 text-center" role="alert">
+            <div className="alert alert-danger zindex-tooltip  position-fixed top-0 w-100 text-center" role="alert">
               Debes ingresar un titulo
           </div>
           </Fade>
           <Fade in={errors.success}>
-            <div className="alert alert-success  zindex-tooltip position-fixed top-0 w-75 text-center" role="alert">
+            <div className="alert alert-success  zindex-tooltip position-fixed top-0 w-100 text-center" role="alert">
               Tarea creada con exito
               </div>
           </Fade>
           <Fade in={errors.numberError}>
-              <div className="alert alert-warning  zindex-tooltip position-fixed top-0 w-75 text-center" role="alert">
+              <div className="alert alert-warning  zindex-tooltip position-fixed bottom-0 w-100 text-center" role="alert">
               El titulo no puede contener numeros
               </div>
           </Fade>
           <Fade in={errors.duplicate}>
-              <div className="alert alert-warning zindex-tooltip position-fixed top-0 w-75 text-center" role="alert">
+              <div className="alert alert-warning zindex-tooltip position-fixed top-0 w-100 text-center" role="alert">
               El titulo no puede ser igual a una tarea ya creada
               </div>
           </Fade>
-        </div>
-      </div>
           { errors.delete ? <></> :
         <Fade in={errors.delete}>
               <div className="alert alert-danger zindex-tooltip position-fixed opacity-100 top-0 w-100  text-center" role="alert">
