@@ -6,14 +6,16 @@ interface input {
   completed: boolean;
 }
 
-function CrearTodo({input ,setInputs, createTodo}: { createTodo:()=> void, input: input, setInputs: React.Dispatch<React.SetStateAction<input>>}) {
+function CrearTodo({input ,setInputs, createTodo, error}: { createTodo:()=> void, input: input, error: boolean ,  setInputs: React.Dispatch<React.SetStateAction<input>>}) {
   
   return (
     <div className=''>
     <Form>
       <Form.Group className="mb-3 p-3" controlId="">
         <Form.Label >Titulo de la tarea</Form.Label>
-        <Form.Control onChange={(e)=>{
+        <Form.Control
+        value={input.title}
+        onChange={(e)=>{
           setInputs({
             ...input,
             title: e.target.value
@@ -33,7 +35,8 @@ function CrearTodo({input ,setInputs, createTodo}: { createTodo:()=> void, input
             </select>
         </div>
       <Button 
-      className='m-auto d-block p-3 '
+      disabled={error}
+      className='m-auto d-block p-3 mb-2'
       onClick={(e)=>{
         e.preventDefault()
         createTodo()
